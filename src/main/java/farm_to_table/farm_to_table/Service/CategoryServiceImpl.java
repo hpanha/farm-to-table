@@ -21,29 +21,37 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryResponse create(CategoryRequest r) {
-        Long id = categoryRepository.insertCategory(r.getName(), r.getDescription(), r.getStatus());
-        return getById(id);
+        CategoryEntity entity = new CategoryEntity();
+        entity.setName(r.getName());
+        entity.setDescription(r.getDescription());
+        entity.setStatus(r.getStatus() != null ? r.getStatus() : "ACTIVE");
+        return toResponse(categoryRepository.save(entity));
     }
 
     @Override
     @Transactional
     public CategoryResponse update(Long id, CategoryRequest r) {
-        getById(id);
-        categoryRepository.updateCategory(id, r.getName(), r.getDescription(), r.getStatus());
-        return getById(id);
+        CategoryEntity entity = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found: " + id));
+        entity.setName(r.getName());
+        entity.setDescription(r.getDescription());
+        entity.setStatus(r.getStatus());
+        return toResponse(categoryRepository.save(entity));
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
-        getById(id);
-        categoryRepository.deleteCategory(id);
+        if (!categoryRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found: " + id);
+        }
+        categoryRepository.deleteById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public CategoryResponse getById(Long id) {
-        return categoryRepository.getCategoryById(id)
+        return categoryRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Category not found: " + id));
@@ -52,7 +60,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAll() {
-        return categoryRepository.getAllCategories().stream().map(this::toResponse).toList();
+        return categoryRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     private CategoryResponse toResponse(CategoryEntity e) {

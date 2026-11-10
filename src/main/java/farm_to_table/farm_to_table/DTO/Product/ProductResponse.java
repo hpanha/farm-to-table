@@ -23,4 +23,5 @@ public class ProductResponse {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date expiredDate;
     private String location;
+    private java.util.List<String> images;
 }

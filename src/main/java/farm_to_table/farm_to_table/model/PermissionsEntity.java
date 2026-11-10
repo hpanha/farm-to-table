@@ -9,7 +9,6 @@ import lombok.Setter;
 @Table(name = "permissions")
 @Getter
 @Setter
-@Data
 public class PermissionsEntity extends BaseEntity {
 
     @Id

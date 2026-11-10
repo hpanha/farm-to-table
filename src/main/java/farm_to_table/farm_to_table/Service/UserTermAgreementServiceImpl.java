@@ -6,6 +6,7 @@ import farm_to_table.farm_to_table.DTO.UserTermAgreement.UserTermAgreementRespon
 import farm_to_table.farm_to_table.DTO.UserTermAgreement.UserTermAgreementStatusDto;
 import farm_to_table.farm_to_table.Repository.CustomerRepository;
 import farm_to_table.farm_to_table.Repository.TermsConditionRepository;
+import farm_to_table.farm_to_table.Repository.UserRepository;
 import farm_to_table.farm_to_table.Repository.UserTermAgreementRepository;
 import farm_to_table.farm_to_table.model.AgreementStatus;
 import farm_to_table.farm_to_table.model.TermsConditionEntity;
@@ -32,6 +33,7 @@ public class UserTermAgreementServiceImpl implements UserTermAgreementService {
     private final UserTermAgreementRepository repository;
     private final TermsConditionRepository termRepository;
     private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
 
     @Override
     public UserTermAgreementResponseDto create(UserTermAgreementRequestDto dto,
@@ -39,8 +41,8 @@ public class UserTermAgreementServiceImpl implements UserTermAgreementService {
         Long userId = parseId(dto.getUserId(), "userId");
         Long termId = parseId(dto.getTermId(), "termId");
 
-        if (!customerRepository.existsById(userId)) {
-            throw new EntityNotFoundException("Customer with id " + userId + " not found");
+        if (!customerRepository.existsById(userId) && !userRepository.existsById(userId)) {
+            throw new EntityNotFoundException("User/Customer with id " + userId + " not found");
         }
 
         TermsConditionEntity term = termRepository.findById(termId)

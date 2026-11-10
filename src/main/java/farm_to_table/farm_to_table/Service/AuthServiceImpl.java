@@ -63,8 +63,9 @@ public class AuthServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserEntity findByUsername(String username) {
-        return userRepository.findByUsername(username)
+    public UserEntity findByUsername(String identifier) {
+        return userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 }

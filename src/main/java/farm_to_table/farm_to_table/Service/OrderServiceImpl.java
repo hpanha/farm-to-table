@@ -7,6 +7,7 @@ import farm_to_table.farm_to_table.DTO.Order.OrderUpdateDto;
 import farm_to_table.farm_to_table.Repository.CustomerRepository;
 import farm_to_table.farm_to_table.Repository.OrderRepository;
 import farm_to_table.farm_to_table.Repository.StatusRepository;
+import farm_to_table.farm_to_table.Repository.UserRepository;
 import farm_to_table.farm_to_table.model.OrderEntity;
 import farm_to_table.farm_to_table.model.OrderStatus;
 import farm_to_table.farm_to_table.model.StatusEntity;
@@ -33,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository repository;
     private final CustomerRepository customerRepository;
     private final StatusRepository statusRepository;
+    private final UserRepository userRepository;
 
     @Override
     public OrderResponseDto create(OrderRequestDto dto) {
@@ -157,8 +159,8 @@ public class OrderServiceImpl implements OrderService {
         } catch (NumberFormatException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "customerId must be a number");
         }
-        if (!customerRepository.existsById(id)) {
-            throw new EntityNotFoundException("Customer with id " + customerId + " not found");
+        if (!customerRepository.existsById(id) && !userRepository.existsById(id)) {
+            throw new EntityNotFoundException("Customer/User with id " + customerId + " not found");
         }
     }
 

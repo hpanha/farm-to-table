@@ -3,9 +3,9 @@ spring:
     name: farm-to-table
 
   datasource:
-    url: jdbc:postgresql://localhost:8080/farm_to_table
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/farm_to_table
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:tocomputer}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -17,8 +17,8 @@ spring:
         format_sql: true
 
 server:
-  port: 8082
+  port: ${SERVER_PORT:8083}
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:ZmFybXRvdGFibGVzdXBlcnNlY3JldGtleTIwMjZzYWZlYW5kbG9uZ2Vub3VnaGZvcmp3dA==}
   expiration: 86400000

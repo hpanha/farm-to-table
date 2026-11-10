@@ -17,6 +17,8 @@ public interface ProductImageRepository extends JpaRepository<ProductImageEntity
 
     Optional<ProductImageEntity> findByIdAndProduct_Id(Long id, Long productId);
 
+    java.util.List<ProductImageEntity> findByProduct_Id(Long productId);
+
     Page<ProductImageEntity> findByProduct_IdAndPathContainingIgnoreCase(
             Long productId, String path, Pageable pageable);
 }
