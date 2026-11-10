@@ -41,6 +41,14 @@ public class UserManagementController {
         return ResponseEntity.ok(userService.update(id, request));
     }
 
+    // PATCH /api/users/{id}/approval  body: { "status": "APPROVED" | "PENDING" | "REJECTED" }  (ADMIN only)
+    @PatchMapping("/{id}/approval")
+    public ResponseEntity<farm_to_table.farm_to_table.DTO.Approval.ApprovalResponseDto> setApproval(
+            @PathVariable Long id,
+            @Valid @RequestBody farm_to_table.farm_to_table.DTO.Approval.ApprovalRequestDto request) {
+        return ResponseEntity.ok(userService.setApproval(id, request.status()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);

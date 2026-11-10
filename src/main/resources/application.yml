@@ -16,8 +16,23 @@ spring:
       hibernate:
         format_sql: true
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
 server:
   port: ${SERVER_PORT:8083}
+
+app:
+  # Folder where uploaded product/category images are stored (served at /uploads/**)
+  upload-dir: ${UPLOAD_DIR:./uploads}
+  farmer:
+    # true = farmers are approved on registration (dev/test). false = admin must approve.
+    auto-approve: ${FARMER_AUTO_APPROVE:false}
+  dev:
+    # true = a farmer may bypass-approve their OWN product (testing only). Keep false in production.
+    bypass-approval: ${DEV_BYPASS_APPROVAL:true}
 
 jwt:
   secret: ${JWT_SECRET:ZmFybXRvdGFibGVzdXBlcnNlY3JldGtleTIwMjZzYWZlYW5kbG9uZ2Vub3VnaGZvcmp3dA==}

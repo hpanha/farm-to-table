@@ -347,3 +347,49 @@
 ---
 
 `*` = ចាំបាច់ (required)
+
+---
+
+## 26. Uploads `/api/uploads` (JWT)
+
+| Method | Path | Body | Response |
+|---|---|---|---|
+| POST | `/api/uploads` | multipart form, field `file` | 201 `{ "url": "/uploads/<uuid>.jpg" }` |
+| GET | `/uploads/{name}` | (public, no token) | the image |
+
+- Allowed: JPEG, PNG, WEBP (checked by file content). Max 5 MB. Other files → 415. Too big → 413.
+- Use the returned `url` in `CategoryRequest.image` or as a product image path (`images: [...]`).
+- Relative `/uploads/...` paths: prefix them with the API base URL to load them.
+
+## 27. Product images & visibility (changes)
+
+- `POST /api/products` accepts at most **5** images (400 otherwise).
+- `GET /api/products` and `GET /api/products/{id}`: products of farmers whose `approvalStatus` is `PENDING` or `REJECTED` are **hidden** from guests and buyers. The owner sees their own products; ADMIN sees all.
+
+## 28. Farmer approval `/api/users/{id}/approval` (ADMIN only)
+
+| Method | Path | Body | Response |
+|---|---|---|---|
+| PATCH | `/api/users/{id}/approval` | `{ "status": "APPROVED" \| "PENDING" \| "REJECTED" }` | `{ "id", "approvalStatus" }` |
+
+- Only FARMER accounts (roleId 2) can be approved (400 otherwise). Non-admin → 403.
+- New farmers start `PENDING`. Set env `FARMER_AUTO_APPROVE=true` to approve them on registration (dev/test only).
+- `POST /api/auth/login` now returns `userId` and `approvalStatus`.
+- Self-registration allows only roleId `2` (FARMER) and `3` (BUYER). roleId `1` → 403.
+
+## 29. Commission `/api/settings/commission`
+
+| Method | Path | Body | Response |
+|---|---|---|---|
+| GET | `/api/settings/commission` | — (logged-in user) | `{ "rate": 0 }` |
+| PUT | `/api/settings/commission` | `{ "rate": 0.10 }` (ADMIN only) | `{ "rate": 0.1 }` |
+
+- `rate` is a fraction: `0.10` = 10%. Valid range `0 ≤ rate < 1`. Default `0`.
+- When an order becomes `DELIVERED`, every order-detail line is snapshotted:
+  `commissionRate`, `commissionAmount = round2(subTotal × rate)`, `farmerNetAmount = subTotal − commissionAmount`.
+  Delivery fee is not part of the commission base. Later rate changes do not change delivered lines.
+- `OrderDetailResponseDto` now includes `commissionRate`, `commissionAmount`, `farmerNetAmount` (null until delivered).
+
+## 30. Category image
+
+- `CategoryRequest` / `CategoryResponse` have `image` (URL from `/api/uploads`). On update, omitting `image` keeps the current picture.

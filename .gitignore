@@ -36,3 +36,6 @@ build/
 application-local.properties
 application-local.yml
 
+
+### Uploaded images (local storage) ###
+uploads/

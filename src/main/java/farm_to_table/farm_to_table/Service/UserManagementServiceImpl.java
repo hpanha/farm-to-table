@@ -163,6 +163,18 @@
             userRepository.save(u);
         }
 
+        @Override
+        @Transactional
+        public farm_to_table.farm_to_table.DTO.Approval.ApprovalResponseDto setApproval(Long id, String status) {
+            UserEntity u = findUser(id);
+            if (u.getRolesId() == null || u.getRolesId() != 2L) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only FARMER accounts need approval");
+            }
+            u.setApprovalStatus(status);
+            userRepository.save(u);
+            return new farm_to_table.farm_to_table.DTO.Approval.ApprovalResponseDto(u.getId(), status);
+        }
+
         private UserEntity findUser(Long id) {
             return userRepository.findById(id)
                     .filter(u -> !"DELETED".equals(u.getStatus()))

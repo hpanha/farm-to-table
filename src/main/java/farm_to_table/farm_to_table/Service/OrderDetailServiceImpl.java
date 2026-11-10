@@ -21,6 +21,7 @@ import java.util.List;
 public class OrderDetailServiceImpl implements OrderDetailService {
 
     private final OrderDetailRepository repository;
+    private final farm_to_table.farm_to_table.Repository.ProductRepository productRepository;
 
     @Override
     public OrderDetailResponseDto create(OrderDetailRequestDto request) {
@@ -76,8 +77,20 @@ public class OrderDetailServiceImpl implements OrderDetailService {
         entity.setPaymentMethodId(req.getPaymentMethodId());
     }
 
+    private String productNameOf(String productId) {
+        if (productId == null) return null;
+        try {
+            return productRepository.findById(Long.parseLong(productId.trim()))
+                    .map(p -> p.getName())
+                    .orElse(null);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     private OrderDetailResponseDto toDto(OrderDetailEntity e) {
         OrderDetailResponseDto dto = new OrderDetailResponseDto();
+        dto.setProductName(productNameOf(e.getProductId()));
         dto.setId(e.getId());
         dto.setOrderId(e.getOrderId());
         dto.setProductId(e.getProductId());
@@ -86,6 +99,9 @@ public class OrderDetailServiceImpl implements OrderDetailService {
         dto.setSubTotal(e.getSubTotal());
         dto.setOtherMethodId(e.getOtherMethodId());
         dto.setPaymentMethodId(e.getPaymentMethodId());
+        dto.setCommissionRate(e.getCommissionRate());
+        dto.setCommissionAmount(e.getCommissionAmount());
+        dto.setFarmerNetAmount(e.getFarmerNetAmount());
         dto.setCreatedAt(e.getCreatedAt() != null ? e.getCreatedAt() : LocalDateTime.now());
         dto.setUpdatedAt(e.getUpdatedAt() != null ? e.getUpdatedAt() : LocalDateTime.now());
         return dto;

@@ -32,4 +32,7 @@ public class ProductEntity extends BaseEntity {
     private Date expiredDate;
 
     private String location;
+
+    /** PENDING (waiting for approval), APPROVED, REJECTED. Null = legacy product, treated as APPROVED. */
+    private String approvalStatus;
 }

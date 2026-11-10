@@ -74,6 +74,12 @@ public class SecurityConfig {
                         ).permitAll()
                         // Public read-only access for marketplace exploration
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**", "/api/delivery-fees/**", "/api/payment-methods/**").permitAll()
+                        // Uploaded product/category pictures are shown to guests too
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        // Admin-only actions. Roles are granted as ROLE_<roleId>; ADMIN = role 1.
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/*/approval").hasAuthority("ROLE_1")
+                        .requestMatchers(HttpMethod.GET, "/api/cashouts").hasAuthority("ROLE_1")
+                        .requestMatchers(HttpMethod.PATCH, "/api/cashouts/*/status").hasAuthority("ROLE_1")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

@@ -5,9 +5,14 @@ import farm_to_table.farm_to_table.DTO.Order.OrderResponseDto;
 import farm_to_table.farm_to_table.DTO.Order.OrderStatusDto;
 import farm_to_table.farm_to_table.DTO.Order.OrderUpdateDto;
 import farm_to_table.farm_to_table.Repository.CustomerRepository;
+import farm_to_table.farm_to_table.Repository.ProductRepository;
+import farm_to_table.farm_to_table.model.UserEntity;
+import org.springframework.beans.factory.annotation.Value;
+import farm_to_table.farm_to_table.Repository.OrderDetailRepository;
 import farm_to_table.farm_to_table.Repository.OrderRepository;
 import farm_to_table.farm_to_table.Repository.StatusRepository;
 import farm_to_table.farm_to_table.Repository.UserRepository;
+import farm_to_table.farm_to_table.model.OrderDetailEntity;
 import farm_to_table.farm_to_table.model.OrderEntity;
 import farm_to_table.farm_to_table.model.OrderStatus;
 import farm_to_table.farm_to_table.model.StatusEntity;
@@ -35,6 +40,65 @@ public class OrderServiceImpl implements OrderService {
     private final CustomerRepository customerRepository;
     private final StatusRepository statusRepository;
     private final UserRepository userRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final CommissionService commissionService;
+    private final ProductRepository productRepository;
+
+    /** Dev/test only (same flag as the product bypass). */
+    @Value("${app.dev.bypass-approval:false}")
+    private boolean devBypass;
+
+    @Override
+    @Transactional
+    public OrderResponseDto devDeliver(Long id, String actorUsername) {
+        if (!devBypass) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Dev bypass is disabled on the server");
+        }
+        OrderEntity entity = findOrThrow(id);
+        UserEntity actor = userRepository.findByUsername(actorUsername)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Log in first"));
+        boolean admin = actor.getRolesId() != null && actor.getRolesId() == 1L;
+        if (!admin && !ownsALineIn(entity, String.valueOf(actor.getId()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only an admin or the farmer of a product in this order can mark it delivered");
+        }
+
+        // Walk the normal steps: PENDING -> CONFIRMED -> SHIPPING -> DELIVERED.
+        while (currentStatus(entity) != OrderStatus.DELIVERED) {
+            OrderStatus current = currentStatus(entity);
+            if (current == OrderStatus.CANCELLED) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "A cancelled order cannot be delivered");
+            }
+            OrderStatus next = nextStep(current);
+            if (next == OrderStatus.DELIVERED) {
+                snapshotCommission(entity);
+            }
+            applyStatus(entity, resolveStatus(next));
+        }
+        return toDto(repository.save(entity));
+    }
+
+    private static OrderStatus nextStep(OrderStatus current) {
+        return switch (current) {
+            case PENDING -> OrderStatus.CONFIRMED;
+            case CONFIRMED -> OrderStatus.SHIPPING;
+            case SHIPPING -> OrderStatus.DELIVERED;
+            default -> throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot advance from " + current);
+        };
+    }
+
+    private boolean ownsALineIn(OrderEntity order, String farmerUserId) {
+        return orderDetailRepository.findByOrderId(String.valueOf(order.getId())).stream()
+                .anyMatch(line -> {
+                    try {
+                        return productRepository.findById(Long.parseLong(line.getProductId().trim()))
+                                .map(p -> farmerUserId.equals(p.getUserId()))
+                                .orElse(false);
+                    } catch (RuntimeException e) {
+                        return false;
+                    }
+                });
+    }
 
     @Override
     public OrderResponseDto create(OrderRequestDto dto) {
@@ -84,6 +148,9 @@ public class OrderServiceImpl implements OrderService {
                             + ". Allowed: " + current.allowedNext());
         }
 
+        if (next == OrderStatus.DELIVERED) {
+            snapshotCommission(entity);
+        }
         applyStatus(entity, resolveStatus(next));
         return toDto(repository.save(entity));
     }
@@ -150,6 +217,22 @@ public class OrderServiceImpl implements OrderService {
     private void applyStatus(OrderEntity entity, StatusEntity status) {
         entity.setOrderStatus(status.getCode());
         entity.setStatusId(String.valueOf(status.getId()));
+    }
+
+    /**
+     * On delivery, freeze the commission for every line: gross = sub_total (product price only,
+     * delivery fee is excluded), commission = gross x rate, farmer net = gross - commission.
+     */
+    private void snapshotCommission(OrderEntity order) {
+        double rate = commissionService.getRate().doubleValue();
+        for (OrderDetailEntity line : orderDetailRepository.findByOrderId(String.valueOf(order.getId()))) {
+            double gross = line.getSubTotal() == null ? 0.0 : line.getSubTotal();
+            double commission = CommissionService.round2(gross * rate);
+            line.setCommissionRate(rate);
+            line.setCommissionAmount(commission);
+            line.setFarmerNetAmount(CommissionService.round2(gross - commission));
+            orderDetailRepository.save(line);
+        }
     }
 
     private void requireCustomerExists(String customerId) {

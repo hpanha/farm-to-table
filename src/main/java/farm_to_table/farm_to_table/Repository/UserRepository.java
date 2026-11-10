@@ -14,6 +14,10 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
     Optional<UserEntity> findByEmail(String email);
+
+    /** Ids of farmers whose products must stay hidden from buyers. */
+    @Query("select u.id from UserEntity u where u.approvalStatus in ('PENDING', 'REJECTED')")
+    java.util.List<Long> findIdsNotApproved();
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     Page<UserEntity> findByStatusNot(String status, Pageable pageable);

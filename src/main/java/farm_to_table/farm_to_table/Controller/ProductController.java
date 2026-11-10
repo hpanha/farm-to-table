@@ -1,10 +1,13 @@
 package farm_to_table.farm_to_table.Controller;
 
+import farm_to_table.farm_to_table.DTO.Approval.ApprovalRequestDto;
 import farm_to_table.farm_to_table.DTO.Product.ProductRequest;
+import jakarta.validation.Valid;
 import farm_to_table.farm_to_table.DTO.Product.ProductResponse;
 import farm_to_table.farm_to_table.Service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,12 +38,25 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getById(id));
+    public ResponseEntity<ProductResponse> getById(@PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(productService.getById(id, viewerName(authentication)));
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAll() {
-        return ResponseEntity.ok(productService.getAll());
+    public ResponseEntity<List<ProductResponse>> getAll(Authentication authentication) {
+        return ResponseEntity.ok(productService.getAll(viewerName(authentication)));
+    }
+
+    // PATCH /api/products/{id}/approval  body: { "status": "APPROVED" | "PENDING" | "REJECTED" }
+    // ADMIN may set any product; the owner may only bypass-approve (APPROVED) when the dev flag is on.
+    @PatchMapping("/{id}/approval")
+    public ResponseEntity<ProductResponse> setApproval(@PathVariable Long id,
+                                                       @Valid @RequestBody ApprovalRequestDto request,
+                                                       Authentication authentication) {
+        return ResponseEntity.ok(productService.setApproval(id, request.status(), viewerName(authentication)));
+    }
+
+    private static String viewerName(Authentication authentication) {
+        return authentication == null ? null : authentication.getName();
     }
 }

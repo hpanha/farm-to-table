@@ -19,4 +19,6 @@ public class CategoryEntity extends BaseEntity {
     private String name;
     private String description;
     private String status;
+    /** Public URL of the category picture, e.g. /uploads/{uuid}.jpg */
+    private String image;
 }

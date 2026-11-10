@@ -39,6 +39,13 @@ public class OrderController {
         return ResponseEntity.ok(service.updateStatus(id, dto));
     }
 
+    /** POST /api/orders/{id}/dev-deliver: dev bypass that moves the order to DELIVERED (flag-gated). */
+    @PostMapping("/{id}/dev-deliver")
+    public ResponseEntity<OrderResponseDto> devDeliver(@PathVariable Long id,
+                                                       org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(service.devDeliver(id, authentication.getName()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

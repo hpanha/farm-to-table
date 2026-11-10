@@ -21,4 +21,12 @@ public class OrderDetailEntity extends BaseEntity{
     private Double subTotal;
     private String otherMethodId;
     private String paymentMethodId;
+
+    // Commission snapshot, filled once when the order is DELIVERED (null before that).
+    private Double commissionRate;
+    private Double commissionAmount;
+    private Double farmerNetAmount;
+
+    /** Set when the farmer requests a cash-out that includes this line (prevents double cash-out). */
+    private Long cashoutId;
 }

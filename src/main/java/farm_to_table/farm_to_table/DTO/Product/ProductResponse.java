@@ -24,4 +24,5 @@ public class ProductResponse {
     private Date expiredDate;
     private String location;
     private java.util.List<String> images;
+    private String approvalStatus;
 }

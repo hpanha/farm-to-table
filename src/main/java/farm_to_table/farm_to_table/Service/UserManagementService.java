@@ -12,4 +12,5 @@ public interface UserManagementService {
     Page<UserResponse> getAll(Pageable pageable);
     UserResponse update(Long id, UpdateUserRequest request);
     void delete(Long id);
+    farm_to_table.farm_to_table.DTO.Approval.ApprovalResponseDto setApproval(Long id, String status);
 }

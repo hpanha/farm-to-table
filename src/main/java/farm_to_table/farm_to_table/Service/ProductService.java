@@ -9,6 +9,9 @@ public interface ProductService {
     ProductResponse create(ProductRequest request);
     ProductResponse update(Long id, ProductRequest request);
     void delete(Long id);
-    ProductResponse getById(Long id);
-    List<ProductResponse> getAll();
+    /** @param viewerUsername the logged-in username, or null for guests */
+    ProductResponse getById(Long id, String viewerUsername);
+    /** @param actorUsername the logged-in user; owners may bypass-approve only when the dev flag is on */
+    ProductResponse setApproval(Long id, String status, String actorUsername);
+    List<ProductResponse> getAll(String viewerUsername);
 }

@@ -13,6 +13,11 @@ public class OrderDetailResponseDto {
     private Double subTotal;
     private String otherMethodId;
     private String paymentMethodId;
+    /** Name of the product on this line (so the app can show it instead of an id). */
+    private String productName;
+    private Double commissionRate;
+    private Double commissionAmount;
+    private Double farmerNetAmount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

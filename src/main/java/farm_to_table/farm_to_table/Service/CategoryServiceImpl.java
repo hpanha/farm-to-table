@@ -25,6 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
         entity.setName(r.getName());
         entity.setDescription(r.getDescription());
         entity.setStatus(r.getStatus() != null ? r.getStatus() : "ACTIVE");
+        entity.setImage(r.getImage());
         return toResponse(categoryRepository.save(entity));
     }
 
@@ -36,6 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
         entity.setName(r.getName());
         entity.setDescription(r.getDescription());
         entity.setStatus(r.getStatus());
+        if (r.getImage() != null) entity.setImage(r.getImage()); // keep the old picture when none is sent
         return toResponse(categoryRepository.save(entity));
     }
 
@@ -69,6 +71,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .name(e.getName())
                 .description(e.getDescription())
                 .status(e.getStatus())
+                .image(e.getImage())
                 .build();
     }
 }

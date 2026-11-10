@@ -15,6 +15,9 @@ public interface OrderService {
 
     OrderResponseDto updateStatus(Long id, OrderStatusDto dto);
 
+    /** Dev bypass: move an order to DELIVERED through its steps. Needs the dev flag and an admin or a farmer owning a line. */
+    OrderResponseDto devDeliver(Long id, String actorUsername);
+
     void delete(Long id);
 
     OrderResponseDto getById(Long id);

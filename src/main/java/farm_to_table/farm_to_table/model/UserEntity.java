@@ -24,4 +24,10 @@ public class UserEntity extends BaseEntity {
     private String status;
     private String image;
     private Long rolesId;
+
+    /**
+     * Farmer approval state: PENDING, APPROVED or REJECTED.
+     * Null means "approved" (accounts created before this column existed).
+     */
+    private String approvalStatus;
 }
